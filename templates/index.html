@@ -93,11 +93,6 @@
             box-shadow: 0 6px 20px rgba(0,0,0,0.3);
         }
 
-        .action-btn span {
-            position: relative;
-            z-index: 1;
-        }
-
         .upload-section {
             display: none;
             margin-bottom: 30px;
@@ -193,15 +188,7 @@
             padding: 20px;
             border-radius: 12px;
             text-align: center;
-            animation: fadeInUp 0.6s ease-out;
-            animation-fill-mode: both;
         }
-
-        .info-card:nth-child(1) { animation-delay: 0.1s; }
-        .info-card:nth-child(2) { animation-delay: 0.2s; }
-        .info-card:nth-child(3) { animation-delay: 0.3s; }
-        .info-card:nth-child(4) { animation-delay: 0.4s; }
-        .info-card:nth-child(5) { animation-delay: 0.5s; }
 
         .info-card h3 {
             font-size: 2em;
@@ -266,69 +253,13 @@
             margin-bottom: 10px;
         }
 
-        .explanation-box ul {
-            margin-left: 20px;
-        }
-
-        .explanation-box li {
-            margin: 5px 0;
-            color: #856404;
-        }
-
-        @keyframes fadeInDown {
-            from {
-                opacity: 0;
-                transform: translateY(-30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-            }
-            to {
-                opacity: 1;
-            }
-        }
-
-        @keyframes slideInLeft {
-            from {
-                opacity: 0;
-                transform: translateX(-50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
-        }
-
         @keyframes spin {
             0% { transform: rotate(0deg); }
             100% { transform: rotate(360deg); }
         }
-
-        .filename {
-            margin-top: 10px;
-            color: #667eea;
-            font-weight: bold;
-        }
     </style>
 </head>
+
 <body>
     <div class="container">
         <div class="header">
@@ -347,9 +278,7 @@
             </div>
 
             <div id="uploadSection" class="upload-section">
-                <label for="fileInput" class="file-label">
-                    Choose CSV File
-                </label>
+                <label for="fileInput" class="file-label">Choose CSV File</label>
                 <input type="file" id="fileInput" class="file-input" accept=".csv" onchange="handleFileSelect(event)">
                 <div id="filename" class="filename"></div>
             </div>
@@ -365,8 +294,7 @@
 
     <script>
         function toggleUpload() {
-            const uploadSection = document.getElementById('uploadSection');
-            uploadSection.classList.toggle('active');
+            document.getElementById("uploadSection").classList.toggle("active");
         }
 
         function handleFileSelect(event) {
@@ -380,212 +308,146 @@
         async function generateSynthetic() {
             showLoading();
             try {
-                const response = await fetch('http://localhost:5000/api/generate-synthetic', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
+                const response = await fetch("/api/generate-synthetic", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" }
                 });
                 const data = await response.json();
                 displayResults(data);
-            } catch (error) {
+            } catch (err) {
                 hideLoading();
-                alert('Error: ' + error.message);
+                alert("Error: " + err.message);
             }
         }
 
         async function uploadCSV(file) {
             showLoading();
             const formData = new FormData();
-            formData.append('file', file);
+            formData.append("file", file);
 
             try {
-                const response = await fetch('http://localhost:5000/api/upload-csv', {
-                    method: 'POST',
+                const response = await fetch("/api/upload-csv", {
+                    method: "POST",
                     body: formData
                 });
                 const data = await response.json();
                 displayResults(data);
-            } catch (error) {
+            } catch (err) {
                 hideLoading();
-                alert('Error: ' + error.message);
+                alert("Error: " + err.message);
             }
         }
 
         function showLoading() {
-            document.getElementById('loading').classList.add('active');
-            document.getElementById('results').classList.remove('active');
+            document.getElementById("loading").classList.add("active");
+            document.getElementById("results").classList.remove("active");
         }
 
         function hideLoading() {
-            document.getElementById('loading').classList.remove('active');
+            document.getElementById("loading").classList.remove("active");
         }
 
         function displayResults(data) {
             hideLoading();
-            const resultsDiv = document.getElementById('results');
-            resultsDiv.classList.add('active');
+            const div = document.getElementById("results");
+            div.classList.add("active");
 
-            let html = '';
+            let html = "";
 
-            // Status banner
             if (data.is_feasible) {
-                html += `
-                    <div class="status-banner success">
-                        ✅ Solution is Feasible - Optimal Cost: $${data.optimal_cost.toFixed(2)}
-                    </div>
-                `;
+                html += `<div class="status-banner success">
+                            ✅ Solution is Feasible — Optimal Cost: $${data.optimal_cost.toFixed(2)}
+                         </div>`;
             } else {
-                html += `
-                    <div class="status-banner error">
-                        ❌ Solution is Infeasible
-                    </div>
-                `;
+                html += `<div class="status-banner error">❌ Solution is Infeasible</div>`;
             }
 
-            // Dataset info
             if (data.dataset_info) {
                 html += `
-                    <div class="info-grid">
-                        <div class="info-card">
-                            <h3>${data.dataset_info.plants}</h3>
-                            <p>Plants</p>
-                        </div>
-                        <div class="info-card">
-                            <h3>${data.dataset_info.centers}</h3>
-                            <p>Distribution Centers</p>
-                        </div>
-                        <div class="info-card">
-                            <h3>${data.dataset_info.drugs}</h3>
-                            <p>Drug Types</p>
-                        </div>
-                        <div class="info-card">
-                            <h3>${data.dataset_info.weeks}</h3>
-                            <p>Weeks</p>
-                        </div>
-                        <div class="info-card">
-                            <h3>${data.dataset_info.rows}</h3>
-                            <p>Total Records</p>
-                        </div>
-                    </div>
-                `;
+                <div class="info-grid">
+                    <div class="info-card"><h3>${data.dataset_info.plants}</h3><p>Plants</p></div>
+                    <div class="info-card"><h3>${data.dataset_info.centers}</h3><p>Centers</p></div>
+                    <div class="info-card"><h3>${data.dataset_info.drugs}</h3><p>Drugs</p></div>
+                    <div class="info-card"><h3>${data.dataset_info.weeks}</h3><p>Weeks</p></div>
+                    <div class="info-card"><h3>${data.dataset_info.rows}</h3><p>Total Rows</p></div>
+                </div>`;
             }
 
-            // Infeasibility explanation
             if (data.explanation) {
                 html += `
-                    <div class="explanation-box">
-                        <h3>⚠️ Root Cause: ${data.explanation.root_cause}</h3>
-                        <p><strong>Details:</strong></p>
-                        <ul>
-                            ${data.explanation.details.map(d => `<li>${d}</li>`).join('')}
-                        </ul>
-                        <p><strong>Fix Options:</strong></p>
-                        <ul>
-                            ${data.explanation.fix_options.map(f => `<li>${f}</li>`).join('')}
-                        </ul>
-                    </div>
-                `;
+                <div class="explanation-box">
+                    <h3>⚠️ Root Cause: ${data.explanation.root_cause}</h3>
+                    <p><strong>Details:</strong></p>
+                    <ul>${data.explanation.details.map(d => `<li>${d}</li>`).join("")}</ul>
+                    <p><strong>Fix Options:</strong></p>
+                    <ul>${data.explanation.fix_options.map(f => `<li>${f}</li>`).join("")}</ul>
+                </div>`;
             }
 
-            // Shipments table
-            if (data.shipments && data.shipments.length > 0) {
+            if (data.shipments?.length > 0) {
                 html += `
-                    <div class="data-section">
-                        <h2 class="section-title">📦 Shipment Schedule</h2>
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Plant</th>
-                                        <th>Center</th>
-                                        <th>Drug</th>
-                                        <th>Week</th>
-                                        <th>Quantity</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${data.shipments.slice(0, 50).map(s => `
-                                        <tr>
-                                            <td>${s.plant}</td>
-                                            <td>${s.center}</td>
-                                            <td>${s.drug}</td>
-                                            <td>${s.week}</td>
-                                            <td>${s.quantity}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                        ${data.shipments.length > 50 ? `<p style="margin-top: 10px; color: #666;">Showing first 50 of ${data.shipments.length} shipments</p>` : ''}
+                <div class="data-section">
+                    <h2 class="section-title">📦 Shipment Schedule</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr>
+                                <th>Plant</th><th>Center</th><th>Drug</th><th>Week</th><th>Quantity</th>
+                            </tr></thead>
+                            <tbody>
+                                ${data.shipments.slice(0, 50).map(s => `
+                                <tr>
+                                    <td>${s.plant}</td><td>${s.center}</td><td>${s.drug}</td>
+                                    <td>${s.week}</td><td>${s.quantity}</td>
+                                </tr>`).join("")}
+                            </tbody>
+                        </table>
                     </div>
-                `;
+                </div>`;
             }
 
-            // Inventory table
-            if (data.inventory && data.inventory.length > 0) {
+            if (data.inventory?.length > 0) {
                 html += `
-                    <div class="data-section">
-                        <h2 class="section-title">📊 Inventory Levels</h2>
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Center</th>
-                                        <th>Drug</th>
-                                        <th>Week</th>
-                                        <th>Quantity</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${data.inventory.slice(0, 30).map(i => `
-                                        <tr>
-                                            <td>${i.center}</td>
-                                            <td>${i.drug}</td>
-                                            <td>${i.week}</td>
-                                            <td>${i.quantity}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
-                        ${data.inventory.length > 30 ? `<p style="margin-top: 10px; color: #666;">Showing first 30 of ${data.inventory.length} inventory records</p>` : ''}
+                <div class="data-section">
+                    <h2 class="section-title">📊 Inventory Levels</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr>
+                                <th>Center</th><th>Drug</th><th>Week</th><th>Quantity</th>
+                            </tr></thead>
+                            <tbody>
+                                ${data.inventory.slice(0, 30).map(i => `
+                                <tr>
+                                    <td>${i.center}</td><td>${i.drug}</td>
+                                    <td>${i.week}</td><td>${i.quantity}</td>
+                                </tr>`).join("")}
+                            </tbody>
+                        </table>
                     </div>
-                `;
+                </div>`;
             }
 
-            // Shortages
-            if (data.shortages && data.shortages.length > 0) {
+            if (data.shortages?.length > 0) {
                 html += `
-                    <div class="data-section">
-                        <h2 class="section-title">⚠️ Shortages</h2>
-                        <div class="table-container">
-                            <table>
-                                <thead>
-                                    <tr>
-                                        <th>Center</th>
-                                        <th>Drug</th>
-                                        <th>Week</th>
-                                        <th>Quantity</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    ${data.shortages.map(s => `
-                                        <tr>
-                                            <td>${s.center}</td>
-                                            <td>${s.drug}</td>
-                                            <td>${s.week}</td>
-                                            <td>${s.quantity}</td>
-                                        </tr>
-                                    `).join('')}
-                                </tbody>
-                            </table>
-                        </div>
+                <div class="data-section">
+                    <h2 class="section-title">⚠️ Shortages</h2>
+                    <div class="table-container">
+                        <table>
+                            <thead><tr>
+                                <th>Center</th><th>Drug</th><th>Week</th><th>Quantity</th>
+                            </tr></thead>
+                            <tbody>
+                                ${data.shortages.map(s => `
+                                <tr>
+                                    <td>${s.center}</td><td>${s.drug}</td>
+                                    <td>${s.week}</td><td>${s.quantity}</td>
+                                </tr>`).join("")}
+                            </tbody>
+                        </table>
                     </div>
-                `;
+                </div>`;
             }
 
-            resultsDiv.innerHTML = html;
+            div.innerHTML = html;
         }
     </script>
 </body>

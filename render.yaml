@@ -1,11 +1,6 @@
 services:
-  - type: web
-    name: pharma-optimizer
+  - name: pharma-optimizer
+    type: web
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app:app
-    envVars:
-      - key: PYTHON_VERSION
-        value: 3.9.0
-      - key: FLASK_ENV
-        value: production
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "gunicorn app:app"
